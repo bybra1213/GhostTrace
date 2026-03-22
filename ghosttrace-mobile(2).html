@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GhostTrace">
+<title>GhostTrace</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Share+Tech+Mono&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+<style>
+:root{
+  --bg:#07090d;--surface:#0c0f16;--surface2:#10141e;--surface3:#141924;
+  --border:#1a2030;--border2:#242e42;
+  --accent:#c9a96e;--accent2:#e8c87a;
+  --accent-dim:rgba(201,169,110,0.12);--accent-glow:rgba(201,169,110,0.3);
+  --text:#cdc8c0;--text-bright:#e8e4dc;--text-dim:#6a7285;--text-muted:#35404f;
+  --red:#b33a3a;--red-dim:rgba(179,58,58,0.15);
+  --green:#4ca87a;--blue:#5a9fd4;--blue-dim:rgba(90,159,212,0.15);
+  --mono:'Share Tech Mono',monospace;--serif:'Cinzel',serif;--sans:'Raleway',sans-serif;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+  --nav:60px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);}
+body{overflow:hidden;-webkit-font-smoothing:antialiased;}
+
+/* ── SCREENS: display:none / display:flex toggle ── */
+.screen{display:none;flex-direction:column;width:100vw;height:100vh;background:var(--bg);overflow:hidden;}
+.screen.on{display:flex;}
+
+/* ── TOPBAR ── */
+.tb{
+  display:flex;align-items:center;gap:10px;
+  padding:0 16px;
+  padding-top:var(--safe-top);
+  height:calc(52px + var(--safe-top));
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.tb-title{font-family:var(--serif);font-size:16px;color:var(--accent);letter-spacing:3px;flex:1;}
+.tb-sub{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;}
+.back{background:none;border:none;color:var(--accent);font-size:24px;padding:4px 8px 4px 0;cursor:pointer;}
+.hbtn{
+  padding:0 12px;height:32px;background:transparent;
+  border:1px solid var(--border2);color:var(--text-dim);
+  font-family:var(--mono);font-size:10px;letter-spacing:1px;
+  text-transform:uppercase;cursor:pointer;white-space:nowrap;
+}
+.hbtn.accent{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:sdot 2s infinite;}
+@keyframes sdot{0%,100%{box-shadow:0 0 6px var(--green);}50%{box-shadow:0 0 14px var(--green);}}
+
+/* ── SCROLLABLE BODY ── */
+.sb{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.sb.nav-pad{padding-bottom:calc(var(--nav) + var(--safe-bot) + 8px);}
+
+/* ── BOTTOM NAV ── */
+#bnav{
+  position:fixed;bottom:0;left:0;right:0;
+  height:calc(var(--nav) + var(--safe-bot));
+  padding-bottom:var(--safe-bot);
+  background:rgba(12,15,22,0.97);
+  border-top:1px solid var(--border);
+  display:none;align-items:flex-start;justify-content:space-around;
+  padding-top:6px;z-index:500;
+}
+#bnav.on{display:flex;}
+.ni{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 14px;cursor:pointer;min-width:56px;}
+.ni .ico{font-size:22px;line-height:1;}
+.ni .lbl{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--text-muted);text-transform:uppercase;}
+.ni.on .lbl{color:var(--accent);}
+
+/* ── HOME ── */
+.home-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  padding:32px 20px 20px;gap:6px;
+  background:radial-gradient(ellipse at 50% 30%,#0d1525 0%,var(--bg) 60%);
+  min-height:100%;
+}
+.home-title{
+  font-family:var(--serif);font-size:46px;font-weight:900;
+  background:linear-gradient(135deg,#a07840,var(--accent),var(--accent2),var(--accent));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:5px;margin:4px 0;
+}
+.home-sub{font-family:var(--mono);font-size:9px;letter-spacing:4px;color:var(--text-muted);text-transform:uppercase;}
+.hdiv{width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);margin:14px 0;}
+.stats{display:flex;gap:28px;margin-bottom:20px;}
+.st{text-align:center;}
+.st-n{font-family:var(--mono);font-size:18px;color:var(--accent);}
+.st-l{font-family:var(--mono);font-size:8px;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;}
+
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;}
+.tile{
+  background:var(--surface);border:1px solid var(--border);
+  padding:16px 14px;display:flex;flex-direction:column;gap:6px;cursor:pointer;
+}
+.tile:active{background:var(--surface2);border-color:var(--border2);}
+.tile.full{grid-column:1/-1;flex-direction:row;align-items:center;gap:12px;border-color:var(--accent);}
+.tile.full:active{background:var(--accent-dim);}
+.t-ico{font-size:22px;}
+.t-title{font-family:var(--mono);font-size:10px;color:var(--accent2);text-transform:uppercase;letter-spacing:1px;}
+.t-sub{font-size:10px;color:var(--text-muted);}
+
+/* ── FORM FIELDS ── */
+.fl{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.fl label{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;}
+.fi,.fs,.ft{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--text-bright);font-family:var(--sans);font-size:15px;
+  padding:13px 14px;-webkit-appearance:none;border-radius:0;
+}
+.fi:focus,.fs:focus,.ft:focus{outline:none;border-color:var(--accent);}
+.fi::placeholder,.ft::placeholder{color:var(--text-muted);font-size:13px;}
+.ft{resize:none;min-height:80px;line-height:1.6;}
+.fs{cursor:pointer;}
+
+/* Category accordion */
+.cat{border-bottom:1px solid var(--border);}
+.cat-hdr{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 16px;background:var(--surface2);cursor:pointer;
+  -webkit-user-select:none;user-select:none;
+}
+.cat-hdr:active{background:var(--surface3);}
+.cat-ico{font-size:16px;width:22px;text-align:center;}
+.cat-ttl{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;flex:1;}
+.cat-arr{font-size:12px;color:var(--text-muted);transition:transform .2s;}
+.cat-hdr.open .cat-arr{transform:rotate(180deg);}
+.cat-body{padding:14px 16px;background:var(--surface);display:none;}
+.cat-hdr.open + .cat-body{display:block;}
+
+/* Form footer */
+.ff{
+  display:flex;gap:8px;padding:12px 16px;
+  padding-bottom:calc(12px + var(--safe-bot));
+  background:var(--surface2);border-top:1px solid var(--border);flex-shrink:0;
+}
+.btn-done{
+  flex:1;padding:15px;
+  background:var(--accent-dim);border:1px solid var(--accent);
+  color:var(--accent2);font-family:var(--mono);font-size:11px;
+  letter-spacing:3px;text-transform:uppercase;cursor:pointer;
+}
+.btn-done:active{box-shadow:0 0 20px var(--accent-glow);}
+.btn-save{
+  padding:15px 16px;background:transparent;border:1px solid var(--border2);
+  color:var(--text-dim);font-family:var(--mono);font-size:11px;
+  letter-spacing:1px;text-transform:uppercase;cursor:pointer;
+}
+.btn-save:active{border-color:var(--green);color:var(--green);}
+
+/* Photo upload */
+.photo-area{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.photo-thumb{
+  width:64px;height:64px;border:1px solid var(--border2);
+  background:var(--bg);display:flex;align-items:center;justify-content:center;
+  font-size:26px;cursor:pointer;flex-shrink:0;overflow:hidden;
+}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;}
+.photo-btns{flex:1;display:flex;flex-direction:column;gap:8px;}
+.pbtn{
+  padding:10px;border:1px dashed var(--border2);background:transparent;
+  color:var(--text-dim);font-family:var(--mono);font-size:9px;
+  letter-spacing:1px;text-transform:uppercase;cursor:pointer;text-align:center;
+}
+.pbtn.del{border-color:rgba(179,58,58,.4);color:var(--red);}
+
+/* ── DOSSIER PREVIEW ── */
+.quick-chips{display:flex;flex-wrap:wrap;gap:7px;padding:12px 16px;border-bottom:1px solid var(--border);}
+.qc{
+  padding:7px 14px;border:1px solid var(--border2);background:transparent;
+  color:var(--text-dim);font-family:var(--mono);font-size:9px;
+  letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:20px;
+}
+.qc:active{border-color:var(--blue);color:var(--blue);}
+
+.a4w{padding:16px;}
+.a4{background:#fff;box-shadow:0 4px 32px rgba(0,0,0,0.6);font-family:'Raleway',sans-serif;color:#1a1a2e;}
+.dh{background:#0f1320;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:relative;}
+.dh::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#c9a96e,#e8c87a,#c9a96e);}
+.dlogo{font-family:'Cinzel',serif;font-size:16px;font-weight:900;color:#c9a96e;letter-spacing:3px;}
+.dlogo span{font-size:7px;display:block;letter-spacing:4px;color:#5a6070;margin-top:1px;font-family:'Share Tech Mono',monospace;}
+.dmeta{text-align:right;}
+.did{font-family:'Share Tech Mono',monospace;font-size:9px;color:#5a6070;letter-spacing:2px;}
+.ddate{font-family:'Share Tech Mono',monospace;font-size:8px;color:#3a4050;}
+.dstamp{background:#f5f5f0;padding:12px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #e0ddd8;}
+.dphoto{width:44px;height:44px;flex-shrink:0;overflow:hidden;border:1px solid #d0ccc8;}
+.dphoto img{width:100%;height:100%;object-fit:cover;}
+.dphoto.empty{display:none;}
+.dname{font-family:'Cinzel',serif;font-size:15px;font-weight:700;color:#0f1320;}
+.dmeta2{font-size:9px;color:#7a8090;font-family:'Share Tech Mono',monospace;letter-spacing:.5px;margin-top:2px;}
+.dbody{padding:12px 18px;}
+.dsec{margin-bottom:12px;}
+.dsec-t{font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:4px;text-transform:uppercase;color:#c9a96e;border-bottom:1px solid #e8e5e0;padding-bottom:4px;margin-bottom:6px;}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;}
+.df{display:flex;flex-direction:column;padding:3px 0;border-bottom:1px solid #f0ede8;}
+.df:last-child{border-bottom:none;}
+.df-k{font-size:6px;font-family:'Share Tech Mono',monospace;letter-spacing:2px;color:#9a9590;text-transform:uppercase;}
+.df-v{font-size:10px;color:#1a1a2e;font-weight:500;word-break:break-word;line-height:1.3;}
+.dfooter{background:#0f1320;padding:8px 18px;display:flex;align-items:center;justify-content:space-between;}
+.dfooter-t{font-family:'Share Tech Mono',monospace;font-size:7px;color:#2a3045;letter-spacing:2px;}
+.dbc{display:flex;gap:1px;align-items:flex-end;height:14px;}
+.dbc span{width:1.5px;background:#2a3045;display:inline-block;}
+
+/* Action buttons below A4 */
+.action-bar{padding:12px 16px;padding-bottom:calc(12px + var(--safe-bot) + var(--nav));background:var(--surface);border-top:1px solid var(--border);}
+.arow{display:flex;gap:8px;margin-bottom:8px;}
+.arow:last-child{margin-bottom:0;}
+.ab{
+  flex:1;padding:14px;border:1px solid var(--border2);background:transparent;
+  color:var(--text-dim);font-family:var(--mono);font-size:9px;
+  letter-spacing:2px;text-transform:uppercase;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+}
+.ab:active{border-color:var(--accent);color:var(--accent);}
+.ab.acc{border-color:var(--accent);color:var(--accent2);background:var(--accent-dim);}
+.ab.acc:active{box-shadow:0 0 16px var(--accent-glow);}
+.ab.blu{border-color:var(--blue);color:var(--blue);background:var(--blue-dim);}
+
+/* ── CABINET ── */
+.search-wrap{padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);}
+.sinput{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--text-bright);font-family:var(--mono);font-size:14px;
+  padding:10px 14px;-webkit-appearance:none;border-radius:0;
+}
+.sinput:focus{outline:none;border-color:var(--accent);}
+.sinput::placeholder{color:var(--text-muted);}
+.dcard{
+  padding:14px 16px;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;cursor:pointer;
+}
+.dcard:active{background:var(--surface2);}
+.dcard-photo{
+  width:44px;height:44px;flex-shrink:0;overflow:hidden;border:1px solid var(--border2);
+  background:var(--bg);display:flex;align-items:center;justify-content:center;
+  color:var(--text-muted);font-size:18px;
+}
+.dcard-photo img{width:100%;height:100%;object-fit:cover;}
+.dcard-info{flex:1;overflow:hidden;}
+.dcard-name{font-size:14px;color:var(--text-bright);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dcard-date{font-family:var(--mono);font-size:9px;color:var(--text-muted);margin-top:2px;}
+.stag{padding:2px 7px;font-family:var(--mono);font-size:7px;letter-spacing:1px;border:1px solid;text-transform:uppercase;display:inline-block;margin-top:4px;}
+.stag.active{border-color:rgba(76,168,122,.5);color:var(--green);}
+.stag.passive{border-color:var(--border2);color:var(--text-muted);}
+.stag.in-progress{border-color:rgba(201,169,110,.5);color:var(--accent);}
+.stag.closed{border-color:rgba(179,58,58,.5);color:var(--red);}
+
+/* ── JOURNAL ── */
+.ncard{padding:14px 16px;background:var(--surface);border-bottom:1px solid var(--border);cursor:pointer;}
+.ncard:active{background:var(--surface2);}
+.ncard-hdr{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.ncard-title{font-size:14px;color:var(--text-bright);font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ntag{padding:1px 7px;font-family:var(--mono);font-size:7px;letter-spacing:1px;border:1px solid;text-transform:uppercase;}
+.ntag.observation{border-color:rgba(90,159,212,.5);color:var(--blue);}
+.ntag.lead{border-color:rgba(201,169,110,.5);color:var(--accent);}
+.ntag.fact{border-color:rgba(76,168,122,.5);color:var(--green);}
+.ntag.note{border-color:var(--border2);color:var(--text-muted);}
+.ncard-date{font-family:var(--mono);font-size:9px;color:var(--text-muted);}
+.ncard-prev{font-size:12px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px;}
+
+/* Note editor */
+#note-editor-screen .sb{display:flex;flex-direction:column;}
+.ne-toolbar{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;gap:8px;}
+.ne-select{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text-dim);font-family:var(--mono);font-size:10px;padding:8px 10px;-webkit-appearance:none;}
+.ne-title{width:100%;background:transparent;border:none;color:var(--text-bright);font-size:18px;font-weight:600;padding:14px 16px;border-bottom:1px solid var(--border);}
+.ne-title:focus{outline:none;}
+.ne-title::placeholder{color:var(--text-muted);}
+.ne-body{flex:1;width:100%;background:transparent;border:none;color:var(--text-bright);font-size:14px;padding:14px 16px;line-height:1.8;resize:none;}
+.ne-body:focus{outline:none;}
+.ne-body::placeholder{color:var(--text-muted);}
+.ne-footer{
+  padding:10px 16px;padding-bottom:calc(10px + var(--safe-bot));
+  background:var(--surface2);border-top:1px solid var(--border);
+  display:flex;gap:8px;flex-shrink:0;
+}
+
+/* ── TOOLS ── */
+.tcat{border-bottom:1px solid var(--border);}
+.tcat-hdr{padding:14px 16px;background:var(--surface2);display:flex;align-items:center;gap:8px;cursor:pointer;}
+.tcat-hdr:active{background:var(--surface3);}
+.tcat-title{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;flex:1;}
+.tcat-arr{font-size:12px;color:var(--text-muted);}
+.tcat-items{display:none;}
+.tcat-items.on{display:block;}
+.titem{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;text-decoration:none;}
+.titem:active{background:var(--surface2);}
+.titem-body{flex:1;}
+.titem-name{font-size:13px;color:var(--accent2);font-weight:600;margin-bottom:3px;}
+.titem-desc{font-size:11px;color:var(--text-dim);line-height:1.5;margin-bottom:4px;}
+.titem-ex{font-family:var(--mono);font-size:9px;color:var(--text-muted);padding:4px 8px;background:var(--bg);border-left:2px solid var(--border2);}
+.tbadge{padding:2px 7px;font-family:var(--mono);font-size:7px;letter-spacing:1px;border:1px solid var(--border2);color:var(--text-muted);text-transform:uppercase;flex-shrink:0;}
+.tbadge.free{border-color:rgba(76,168,122,.4);color:var(--green);}
+
+/* ── ANALYSIS SCREEN ── */
+.analysis-steps{padding:16px;}
+.as-row{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.as-row:last-child{border-bottom:none;}
+.as-dot{width:26px;height:26px;border-radius:50%;border:1px solid var(--border2);color:var(--text-muted);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.as-dot.run{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);animation:sdot 1s infinite;}
+.as-dot.done{border-color:rgba(76,168,122,.4);color:var(--green);background:rgba(76,168,122,.1);}
+.as-info{flex:1;}
+.as-lbl{font-family:var(--mono);font-size:10px;color:var(--text-bright);letter-spacing:1px;}
+.as-det{font-size:10px;color:var(--text-muted);margin-top:2px;}
+
+/* Results */
+.rb{background:var(--surface);margin-bottom:1px;}
+.rb-hdr{padding:10px 16px;background:var(--surface2);display:flex;align-items:center;gap:8px;}
+.rb-ico{font-size:14px;}
+.rb-title{font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;flex:1;}
+.rb-cnt{font-family:var(--mono);font-size:8px;color:var(--text-muted);padding:1px 6px;border:1px solid var(--border2);}
+.ri{padding:10px 16px;border-bottom:1px solid var(--border);}
+.ri:last-child{border-bottom:none;}
+.ri-k{font-family:var(--mono);font-size:7px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px;}
+.ri-v{font-size:12px;color:var(--text-bright);line-height:1.5;}
+.ri-s{font-family:var(--mono);font-size:8px;color:var(--text-muted);margin-top:3px;}
+.cbadge{padding:1px 6px;font-family:var(--mono);font-size:7px;letter-spacing:1px;border:1px solid;text-transform:uppercase;display:inline-block;margin-top:3px;}
+.ch{border-color:rgba(76,168,122,.4);color:var(--green);}
+.cm{border-color:rgba(232,160,80,.4);color:#e8a050;}
+.cl{border-color:rgba(179,58,58,.4);color:var(--red);}
+.ri.sel{cursor:pointer;display:flex;align-items:flex-start;gap:10px;}
+.ri.sel:active{background:var(--surface2);}
+.rchk{width:18px;height:18px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent;flex-shrink:0;margin-top:2px;}
+.ri.selected .rchk{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);}
+
+.sl-item{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;text-decoration:none;}
+.sl-item:active{background:var(--surface2);}
+.sl-plat{width:28px;height:28px;border:1px solid var(--border2);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.sl-body{flex:1;overflow:hidden;}
+.sl-name{font-size:12px;color:var(--text-bright);}
+.sl-url{font-family:var(--mono);font-size:8px;color:var(--blue);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sl-note{font-size:10px;color:var(--text-dim);margin-top:2px;}
+
+.mi{padding:11px 16px;border-bottom:1px solid var(--border);}
+.mi-hdr{display:flex;gap:8px;align-items:flex-start;margin-bottom:5px;}
+.mi-title{font-size:12px;color:var(--text-bright);font-weight:500;flex:1;line-height:1.4;}
+.mtag{padding:1px 6px;font-family:var(--mono);font-size:7px;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--border2);color:var(--text-muted);flex-shrink:0;margin-top:2px;}
+.mtag.article{border-color:rgba(90,159,212,.4);color:var(--blue);}
+.mtag.registry{border-color:rgba(76,168,122,.4);color:var(--green);}
+.mtag.social{border-color:rgba(201,169,110,.4);color:var(--accent);}
+.mi-body{font-size:11px;color:var(--text-dim);line-height:1.5;margin-bottom:4px;}
+.mi-analysis{font-size:11px;color:var(--text-bright);padding:6px 8px;background:var(--bg);border-left:2px solid var(--accent);}
+
+.fp-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);}
+.fp-cell{background:var(--surface);padding:10px 12px;}
+.fp-k{font-family:var(--mono);font-size:7px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px;}
+.fp-v{font-size:11px;color:var(--text-bright);line-height:1.4;}
+.fp-n{font-size:9px;color:var(--text-muted);margin-top:2px;}
+
+.bi{padding:11px 16px;border-bottom:1px solid var(--border);}
+.bi-cat{font-family:var(--mono);font-size:7px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:3px;}
+.bi-obs{font-size:12px;color:var(--text-bright);line-height:1.4;margin-bottom:4px;}
+.bi-inf{font-size:11px;color:var(--text-dim);padding:5px 8px;background:var(--bg);border-left:2px solid var(--border2);}
+.sevtag{display:inline-block;padding:1px 6px;margin-top:4px;font-family:var(--mono);font-size:7px;letter-spacing:1px;text-transform:uppercase;border:1px solid;}
+.si{border-color:rgba(90,159,212,.4);color:var(--blue);}
+.sw{border-color:rgba(232,160,80,.4);color:#e8a050;}
+.sa{border-color:rgba(179,58,58,.4);color:var(--red);}
+
+.di{padding:10px 16px;border-bottom:1px solid var(--border);}
+.di-f{font-family:var(--mono);font-size:7px;letter-spacing:2px;color:var(--red);text-transform:uppercase;margin-bottom:5px;}
+.di-row{display:flex;gap:6px;align-items:flex-start;margin-top:3px;}
+.di-lbl{font-family:var(--mono);font-size:7px;color:var(--text-muted);flex-shrink:0;width:55px;padding-top:2px;}
+.di-v{font-size:11px;line-height:1.4;}
+.di-ex{color:var(--text-dim);}
+.di-fo{color:var(--text-bright);}
+.di-note{font-size:10px;color:#e8a050;margin-top:5px;font-style:italic;}
+
+.nsi{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;}
+.nsi-num{width:22px;height:22px;border-radius:50%;background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent);font-family:var(--mono);font-size:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.nsi-text{font-size:12px;color:var(--text-bright);line-height:1.4;}
+.nsi-tool{font-family:var(--mono);font-size:9px;color:var(--text-muted);margin-top:2px;}
+.pritag{display:inline-block;padding:1px 6px;margin-top:3px;font-family:var(--mono);font-size:7px;letter-spacing:1px;text-transform:uppercase;border:1px solid;}
+.prih{border-color:rgba(179,58,58,.4);color:var(--red);}
+.prim{border-color:rgba(232,160,80,.4);color:#e8a050;}
+.pril{border-color:var(--border2);color:var(--text-muted);}
+
+.analysis-footer{
+  padding:10px 16px;padding-bottom:calc(10px + var(--safe-bot));
+  background:var(--surface);border-top:1px solid var(--border);
+  display:flex;flex-direction:column;gap:8px;flex-shrink:0;
+}
+.analysis-footer-info{font-family:var(--mono);font-size:9px;color:var(--text-muted);letter-spacing:1px;}
+
+/* Summary block */
+.sum-block{padding:16px;background:var(--surface2);border-bottom:1px solid var(--border);}
+.sum-row{display:flex;align-items:center;gap:14px;margin-bottom:10px;}
+.score{width:52px;height:52px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:18px;font-weight:700;border:2px solid var(--accent);color:var(--accent);background:var(--accent-dim);}
+.sum-text{font-size:12px;color:var(--text-dim);line-height:1.6;flex:1;}
+.risk-flags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.rflag{padding:3px 9px;border:1px solid rgba(179,58,58,.4);color:var(--red);font-family:var(--mono);font-size:7px;letter-spacing:1px;background:var(--red-dim);}
+
+/* API key */
+.apikey-steps{display:flex;flex-direction:column;gap:12px;margin:12px 0;}
+.aks-row{display:flex;gap:10px;align-items:flex-start;}
+.aks-num{width:22px;height:22px;border-radius:50%;background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent);font-family:var(--mono);font-size:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.aks-text{font-size:12px;color:var(--text-dim);line-height:1.6;flex:1;}
+.aks-text a{color:var(--accent);text-decoration:none;}
+.green-box{background:rgba(76,168,122,.08);border:1px solid rgba(76,168,122,.3);padding:10px 14px;font-family:var(--mono);font-size:10px;color:var(--green);line-height:1.7;margin-bottom:12px;}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9000;display:none;align-items:center;justify-content:center;padding:24px;}
+.modal-bg.on{display:flex;}
+.modal-box{background:var(--surface);border:1px solid var(--border2);padding:24px;width:100%;max-width:320px;display:flex;flex-direction:column;gap:16px;}
+.modal-title{font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;}
+.modal-text{font-size:13px;color:var(--text-dim);line-height:1.6;}
+.modal-btns{display:flex;gap:8px;}
+.mcancel,.mconfirm{flex:1;padding:13px;font-family:var(--mono);font-size:10px;letter-spacing:2px;cursor:pointer;text-transform:uppercase;border:1px solid;}
+.mcancel{border-color:var(--border2);color:var(--text-dim);background:transparent;}
+.mconfirm{border-color:var(--red);color:var(--red);background:var(--red-dim);}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;top:calc(var(--safe-top) + 60px);left:16px;right:16px;z-index:9999;
+  background:var(--surface2);border:1px solid var(--border2);
+  padding:12px 16px;font-family:var(--mono);font-size:10px;letter-spacing:2px;
+  color:var(--text-bright);display:flex;align-items:center;gap:8px;
+  opacity:0;transform:translateY(-8px);transition:all .3s;pointer-events:none;
+}
+#toast.on{opacity:1;transform:translateY(0);}
+#toast .tdot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;}
+#toast.err .tdot{background:var(--red);}
+#toast.inf .tdot{background:var(--blue);}
+
+/* ── EMPTY STATE ── */
+.empty{padding:48px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.empty .eico{font-size:44px;filter:grayscale(1);opacity:.3;}
+.empty p{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-muted);text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast"><span class="tdot"></span><span id="toast-msg"></span></div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">Подтверждение</div>
+    <div class="modal-text" id="modal-text"></div>
+    <div class="modal-btns">
+      <button class="mcancel" onclick="closeModal()">Отмена</button>
+      <button class="mconfirm" id="modal-ok">Удалить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ HOME ════════ -->
+<div class="screen on" id="home-screen">
+  <div class="sb nav-pad">
+    <div class="home-wrap">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:5px;color:var(--text-dim);text-transform:uppercase;">// Операционный центр</div>
+      <h1 class="home-title">GhostTrace</h1>
+      <div class="home-sub">Intelligence · Analysis</div>
+      <div class="hdiv"></div>
+      <div class="stats">
+        <div class="st"><div class="st-n" id="stat-dos">—</div><div class="st-l">Досье</div></div>
+        <div class="st"><div class="st-n" id="stat-notes">—</div><div class="st-l">Заметки</div></div>
+        <div class="st"><div class="st-n">v2</div><div class="st-l">Build</div></div>
+      </div>
+      <div class="tiles">
+        <div class="tile full" onclick="openForm(null,true)">
+          <span class="t-ico">＋</span>
+          <div><div class="t-title">Создать досье</div><div class="t-sub">Новое дело</div></div>
+        </div>
+        <div class="tile" onclick="goTo('cabinet-screen','nav-cab');renderCab()">
+          <span class="t-ico">🗂</span><div class="t-title">Кабинет</div><div class="t-sub">Все досье</div>
+        </div>
+        <div class="tile" onclick="goTo('journal-screen','nav-jour');renderJournal()">
+          <span class="t-ico">📓</span><div class="t-title">Журнал</div><div class="t-sub">Заметки</div>
+        </div>
+        <div class="tile" onclick="goTo('tools-screen','nav-tools');renderTools()">
+          <span class="t-ico">⚙</span><div class="t-title">Инструменты</div><div class="t-sub">OSINT ресурсы</div>
+        </div>
+        <div class="tile" onclick="exportAll()">
+          <span class="t-ico">↓</span><div class="t-title">Экспорт</div><div class="t-sub">Сохранить базу</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ FORM ════════ -->
+<div class="screen" id="form-screen">
+  <div class="tb">
+    <button class="back" onclick="closeForm()">‹</button>
+    <div><div class="tb-title" id="form-title">Новое досье</div></div>
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+      <span id="form-draft-lbl" style="display:none;font-family:var(--mono);font-size:8px;color:var(--green);border:1px solid rgba(76,168,122,.3);padding:2px 8px;">● Черновик</span>
+      <div class="sdot"></div>
+    </div>
+  </div>
+  <div class="sb">
+    <!-- Фото -->
+    <div class="cat"><div class="cat-hdr open" onclick="toggleCat(this)"><span class="cat-ico">🖼</span><span class="cat-ttl">Фото</span><span class="cat-arr">▾</span></div>
+    <div class="cat-body">
+      <div class="photo-area">
+        <div class="photo-thumb" id="photo-thumb" onclick="document.getElementById('photo-file').click()">📷</div>
+        <div class="photo-btns">
+          <button class="pbtn" onclick="document.getElementById('photo-file').click()">Загрузить фото</button>
+          <button class="pbtn del" id="photo-del" style="display:none" onclick="removePhoto()">Удалить</button>
+        </div>
+        <input type="file" id="photo-file" accept="image/*" onchange="handlePhoto(event)" style="display:none">
+      </div>
+    </div></div>
+    <!-- Личные данные -->
+    <div class="cat"><div class="cat-hdr open" onclick="toggleCat(this)"><span class="cat-ico">👤</span><span class="cat-ttl">Личные данные</span><span class="cat-arr">▾</span></div>
+    <div class="cat-body">
+      <div class="fl"><label>Фамилия</label><input class="fi" id="f_surname" placeholder="Иванов"></div>
+      <div class="fl"><label>Имя</label><input class="fi" id="f_name" placeholder="Иван"></div>
+      <div class="fl"><label>Отчество</label><input class="fi" id="f_patronymic"></div>
+      <div class="fl"><label>Псевдоним</label><input class="fi" id="f_alias"></div>
+      <div class="fl"><label>Дата рождения</label><input class="fi" id="f_dob" type="date"></div>
+      <div class="fl"><label>Пол</label><select class="fs" id="f_gender"><option value="">—</option><option>Мужской</option><option>Женский</option></select></div>
+      <div class="fl"><label>Гражданство</label><input class="fi" id="f_citizenship" placeholder="Россия"></div>
+      <div class="fl"><label>Семейное положение</label><select class="fs" id="f_marital"><option value="">—</option><option>Холост / Не замужем</option><option>Женат / Замужем</option><option>Разведён / Разведена</option></select></div>
+      <div class="fl"><label>Дети</label><input class="fi" id="f_children"></div>
+    </div></div>
+    <!-- Контакты -->
+    <div class="cat"><div class="cat-hdr open" onclick="toggleCat(this)"><span class="cat-ico">📞</span><span class="cat-ttl">Контакты</span><span class="cat-arr">▾</span></div>
+    <div class="cat-body">
+      <div class="fl"><label>Телефон (осн.)</label><input class="fi" id="f_phone1" type="tel" placeholder="+7 000 000-00-00"></div>
+      <div class="fl"><label>Телефон (доп.)</label><input class="fi" id="f_phone2" type="tel"></div>
+      <div class="fl"><label>E-mail</label><input class="fi" id="f_email1" type="email" placeholder="user@mail.com"></div>
+      <div class="fl"><label>E-mail (доп.)</label><input class="fi" id="f_email2" type="email"></div>
+      <div class="fl"><label>Telegram</label><input class="fi" id="f_telegram" placeholder="@username"></div>
+      <div class="fl"><label>WhatsApp</label><input class="fi" id="f_whatsapp" type="tel"></div>
+      <div class="fl"><label>Viber</label><input class="fi" id="f_viber" type="tel"></div>
+    </div></div>
+    <!-- Адрес -->
+    <div class="cat"><div class="cat-hdr" onclick="toggleCat(this)"><span class="cat-ico">📍</span><span class="cat-ttl">Адрес</span><span class="cat-arr">▾</span></div>
+    <div class="cat-body">
+      <div class="fl"><label>Страна</label><input class="fi" id="f_country" placeholder="Россия"></div>
+      <div class="fl"><label>Город</label><input class="fi" id="f_city"></div>
+      <div class="fl"><label>Регион</label><input class="fi" id="f_region"></div>
+      <div class="fl"><label>Адрес проживания</label><input class="fi" id="f_address"></div>
+      <div class="fl"><label>Адрес прописки</label><input class="fi" id="f_reg_address"></div>
+      <div class="fl"><label>Координаты GPS</label><input class="fi" id="f_coords" placeholder="55.75, 37.61"></div>
+    </div></div>
+    <!-- Документы -->
+    <div class="cat"><div class="cat-hdr" onclick="toggleCat(this)"><span class="cat-ico">🪪</span><span class="cat-ttl">Документы</span><span class="cat-arr">▾</span></div>
+    <div class="cat-body">
+      <div class="fl"><label>Паспорт</label><input class="fi" id="f_passport" placeholder="4500 000000"></div>
+      <div class="fl"><label>Дата выдачи</label><input class="fi" id="f_passport_date" type="date"></div>
+      <div class="fl"><label>Кем выдан</label><input class="fi" id="f_passport_issued"></div>
+      <div class="fl"><label>ИНН</label><input class="fi" id="f_inn" inputmode="numeric"></div>
+      <div class="fl"><label>СНИЛС</label><input class="fi" id="f_snils"></div>
+      <div class="fl"><label>Загранпаспорт</label><input class="fi" id="f_int_passport"></div>
+      <div class="fl"><label>Вод. удост.</label><input class="fi" id="f_driving"></div>
+    </div></div>
+    <!-- Внешность -->
+    <div class="cat"><div class="cat-hdr" onclick="toggleCat(this)"><span class="cat-ico">🔍</span><span class="cat-ttl">Внешность</span><span class="cat-arr">▾</span></div>
+    <div class="cat-body">
+      <div class="fl"><label>Рост (см)</label><input class="fi" id="f_height" inputmode="numeric"></div>
+      <div class="fl"><label>Вес (кг)</label><input class="fi" id="f_weight" inputmode="numeric"></div>
+      <div class="fl"><label>Цвет глаз</label><input class="fi" id="f_eyes"></div>
+      <div class="fl"><label>Цвет волос</label><input class="fi" id="f_hair"></div>
+      <div class="fl"><label>Телосложение</label><select class="fs" id="f_build"><option value="">—</option><option>Худощавое</option><option>Среднее</option><option>Атлетическое</option><option>Полное</option></select></div>
+      <div class="fl"><label>Особые приметы</label><textarea class="ft" id="f_marks"></textarea></div>
+    </div></div>
+    <!-- Соцсети -->
+    <div class="cat"><div class="cat-hdr" onclick="toggleCat(this)"><span class="cat-ico">🌐</span><span class="cat-ttl">Социальные сети</span><span class="cat-arr">▾</span></div>
+    <div class="cat-body">
+      <div class="fl"><label>ВКонтакте</label><input class="fi" id="f_vk"></div>
+      <div class="fl"><label>Instagram</label><input class="fi" id="f_instagram" placeholder="@username"></div>
+      <div class="fl"><label>Facebook</label><input class="fi" id="f_facebook"></div>
+      <div class="fl"><label>TikTok</label><input class="fi" id="f_tiktok" placeholder="@username"></div>
+      <div class="fl"><label>Twitter / X</label><input class="fi" id="f_twitter" placeholder="@username"></div>
+      <div class="fl"><label>LinkedIn</label><input class="fi" id="f_linkedin"></div>
+      <div class="fl"><label>Одноклассники</label><input class="fi" id="f_ok"></div>
+    </div></div>
+    <!-- Профессия -->
+    <div class="cat"><div class="cat-hdr" onclick="toggleCat(this)"><span class="cat-ico">💼</span><span class="cat-ttl">Профессия</span><span class="cat-arr">▾</span></div>
+    <div class="cat-body">
+      <div class="fl"><label>Место работы</label><input class="fi" id="f_employer"></div>
+      <div class="fl"><label>Должность</label><input class="fi" id="f_position"></div>
+      <div class="fl"><label>Отрасль</label><input class="fi" id="f_industry"></div>
+      <div class="fl"><label>ИНН организации</label><input class="fi" id="f_org_inn"></div>
+      <div class="fl"><label>Образование</label><select class="fs" id="f_education"><option value="">—</option><option>Среднее</option><option>Высшее</option><option>Учёная степень</option></select></div>
+      <div class="fl"><label>Учебное заведение</label><input class="fi" id="f_university"></div>
+    </div></div>
+    <!-- Транспорт -->
+    <div class="cat"><div class="cat-hdr" onclick="toggleCat(this)"><span class="cat-ico">🚗</span><span class="cat-ttl">Транспорт</span><span class="cat-arr">▾</span></div>
+    <div class="cat-body">
+      <div class="fl"><label>Авто #1</label><input class="fi" id="f_car1_model"></div>
+      <div class="fl"><label>Гос. номер #1</label><input class="fi" id="f_car1_plate"></div>
+      <div class="fl"><label>Авто #2</label><input class="fi" id="f_car2_model"></div>
+      <div class="fl"><label>Гос. номер #2</label><input class="fi" id="f_car2_plate"></div>
+    </div></div>
+    <!-- Связи -->
+    <div class="cat"><div class="cat-hdr" onclick="toggleCat(this)"><span class="cat-ico">🔗</span><span class="cat-ttl">Связи</span><span class="cat-arr">▾</span></div>
+    <div class="cat-body">
+      <div class="fl"><label>Родственники</label><textarea class="ft" id="f_relatives"></textarea></div>
+      <div class="fl"><label>Деловые контакты</label><textarea class="ft" id="f_partners"></textarea></div>
+      <div class="fl"><label>Окружение</label><textarea class="ft" id="f_friends"></textarea></div>
+    </div></div>
+    <!-- Финансы -->
+    <div class="cat"><div class="cat-hdr" onclick="toggleCat(this)"><span class="cat-ico">💳</span><span class="cat-ttl">Финансы</span><span class="cat-arr">▾</span></div>
+    <div class="cat-body">
+      <div class="fl"><label>Банк #1</label><input class="fi" id="f_bank1"></div>
+      <div class="fl"><label>Карта #1</label><input class="fi" id="f_card1"></div>
+      <div class="fl"><label>Банк #2</label><input class="fi" id="f_bank2"></div>
+      <div class="fl"><label>Карта #2</label><input class="fi" id="f_card2"></div>
+    </div></div>
+    <!-- Заметки -->
+    <div class="cat"><div class="cat-hdr" onclick="toggleCat(this)"><span class="cat-ico">📝</span><span class="cat-ttl">Заметки и источники</span><span class="cat-arr">▾</span></div>
+    <div class="cat-body">
+      <div class="fl"><label>Оперативные заметки</label><textarea class="ft" id="f_notes" style="min-height:100px"></textarea></div>
+      <div class="fl"><label>Источники</label><textarea class="ft" id="f_sources"></textarea></div>
+      <div class="fl"><label>Достоверность</label><select class="fs" id="f_reliability"><option value="">—</option><option>Подтверждено</option><option>Высокая</option><option>Средняя</option><option>Низкая</option></select></div>
+      <div class="fl"><label>Статус объекта</label><select class="fs" id="f_status"><option value="">—</option><option>Активен</option><option>Пассивен</option><option>Разрабатывается</option><option>Закрыт</option></select></div>
+    </div></div>
+    <div style="height:20px"></div>
+  </div>
+  <div class="ff">
+    <button class="btn-done" onclick="generate()">✦ Сформировать</button>
+    <button class="btn-save" onclick="saveDossier();closeForm()">💾</button>
+  </div>
+</div>
+
+<!-- ════════ DOSSIER PREVIEW ════════ -->
+<div class="screen" id="dossier-screen">
+  <div class="tb">
+    <button class="back" onclick="goTo('cabinet-screen','nav-cab');renderCab()">‹</button>
+    <div><div class="tb-title" id="dossier-screen-title">Досье</div></div>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <button class="hbtn" onclick="openForm(currentEditingId)">✎ Ред.</button>
+    </div>
+  </div>
+  <div class="sb nav-pad" id="dossier-preview-body">
+    <div class="empty"><div class="eico">📄</div><p>Заполните форму</p></div>
+  </div>
+</div>
+
+<!-- ════════ CABINET ════════ -->
+<div class="screen" id="cabinet-screen">
+  <div class="tb">
+    <button class="back" onclick="goTo('home-screen','nav-home')">‹</button>
+    <div class="tb-title">Кабинет</div>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <button class="hbtn accent" onclick="openForm(null,true)">＋</button>
+    </div>
+  </div>
+  <div class="search-wrap"><input class="sinput" id="cab-search" placeholder="Поиск..." oninput="renderCab()"></div>
+  <div class="sb nav-pad" id="cab-list"></div>
+</div>
+
+<!-- ════════ JOURNAL ════════ -->
+<div class="screen" id="journal-screen">
+  <div class="tb">
+    <button class="back" onclick="goTo('home-screen','nav-home')">‹</button>
+    <div class="tb-title">Журнал</div>
+    <div style="margin-left:auto;">
+      <button class="hbtn accent" onclick="createNote()">＋ Заметка</button>
+    </div>
+  </div>
+  <div class="sb nav-pad" id="journal-list"></div>
+</div>
+
+<!-- ════════ NOTE EDITOR ════════ -->
+<div class="screen" id="note-editor-screen">
+  <div class="tb">
+    <button class="back" onclick="goTo('journal-screen','nav-jour');renderJournal()">‹</button>
+    <div class="tb-title">Заметка</div>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <button class="hbtn accent" onclick="saveNote()">💾</button>
+      <button class="hbtn" style="border-color:rgba(179,58,58,.5);color:var(--red);" onclick="deleteCurrentNote()">✕</button>
+    </div>
+  </div>
+  <div class="sb" style="display:flex;flex-direction:column;padding-bottom:calc(var(--safe-bot)+16px);">
+    <div class="ne-toolbar">
+      <select class="ne-select" id="note-tag">
+        <option value="note">Заметка</option><option value="observation">Наблюдение</option>
+        <option value="lead">Зацепка</option><option value="fact">Факт</option>
+      </select>
+    </div>
+    <input class="ne-title" id="note-title-input" placeholder="Заголовок...">
+    <textarea class="ne-body" id="note-body-input" placeholder="Начните писать..."></textarea>
+  </div>
+</div>
+
+<!-- ════════ TOOLS ════════ -->
+<div class="screen" id="tools-screen">
+  <div class="tb">
+    <button class="back" onclick="goTo('home-screen','nav-home')">‹</button>
+    <div class="tb-title">OSINT Инструменты</div>
+    <div style="margin-left:auto;"><div class="sdot"></div></div>
+  </div>
+  <div class="sb nav-pad" id="tools-list"></div>
+</div>
+
+<!-- ════════ ANALYSIS ════════ -->
+<div class="screen" id="analysis-screen">
+  <div class="tb">
+    <button class="back" onclick="goTo('dossier-screen','nav-dos')">‹</button>
+    <div><div class="tb-title">Анализ досье</div><div class="tb-sub">OpenRouter · DeepSeek</div></div>
+    <div style="margin-left:auto;"><button class="hbtn" onclick="goTo('apikey-screen','')">⚙ API</button></div>
+  </div>
+  <div class="sb" id="analysis-body"></div>
+  <div class="analysis-footer" id="analysis-footer" style="display:none;">
+    <div class="analysis-footer-info" id="analysis-footer-info">Выберите данные для добавления</div>
+    <div style="display:flex;gap:8px;">
+      <button class="ab acc" style="flex:1;" id="btn-apply" onclick="applyFindings()" disabled>Добавить выбранное</button>
+      <button class="ab" onclick="goTo('dossier-screen','nav-dos')">Назад</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ API KEY ════════ -->
+<div class="screen" id="apikey-screen">
+  <div class="tb">
+    <button class="back" onclick="history.back(); goTo('analysis-screen','')">‹</button>
+    <div class="tb-title">OpenRouter API</div>
+  </div>
+  <div class="sb nav-pad" style="padding:16px;">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;margin-bottom:14px;">// Без VPN · Работает в России · Бесплатно</div>
+    <div class="apikey-steps">
+      <div class="aks-row"><div class="aks-num">1</div><div class="aks-text">Зайдите на <a href="https://openrouter.ai" target="_blank">openrouter.ai</a> → Sign In (Google или email)</div></div>
+      <div class="aks-row"><div class="aks-num">2</div><div class="aks-text">Перейдите в <a href="https://openrouter.ai/settings/keys" target="_blank">Settings → Keys</a> → Create Key</div></div>
+      <div class="aks-row"><div class="aks-num">3</div><div class="aks-text">Скопируйте ключ (начинается с <span style="color:var(--accent)">sk-or-v1-</span>) и вставьте ниже</div></div>
+    </div>
+    <div class="green-box">
+      ✓ Бесплатно: 50 запросов/день<br>
+      ✓ Карта не нужна, только email<br>
+      ✓ Ключ хранится в вашем браузере
+    </div>
+    <div class="fl"><label>API Ключ</label><input class="fi" id="apikey-input" type="password" placeholder="sk-or-v1-..."></div>
+    <button class="btn-done" style="width:100%;" onclick="saveApiKey()">Сохранить ключ</button>
+  </div>
+</div>
+
+<!-- ════════ BOTTOM NAV ════════ -->
+<div id="bnav">
+  <button class="ni on" id="nav-home" onclick="goTo('home-screen','nav-home')">
+    <span class="ico">⌂</span><span class="lbl">Главная</span>
+  </button>
+  <button class="ni" id="nav-cab" onclick="goTo('cabinet-screen','nav-cab');renderCab()">
+    <span class="ico">🗂</span><span class="lbl">Кабинет</span>
+  </button>
+  <button class="ni" id="nav-dos" onclick="goTo('dossier-screen','nav-dos')">
+    <span class="ico">📄</span><span class="lbl">Досье</span>
+  </button>
+  <button class="ni" id="nav-jour" onclick="goTo('journal-screen','nav-jour');renderJournal()">
+    <span class="ico">📓</span><span class="lbl">Журнал</span>
+  </button>
+  <button class="ni" id="nav-tools" onclick="goTo('tools-screen','nav-tools');renderTools()">
+    <span class="ico">⚙</span><span class="lbl">Инструменты</span>
+  </button>
+</div>
+
+<script>
+// ══════════════════ STATE ══════════════════
+const VALID_CODES=['44444444'];
+let currentEditingId=null, currentNoteId=null, confirmCb=null, photoData=null;
+const DRAFT_KEY='gt_draft', DRAFT_ID='gt_draft_id';
+let autoLockT=null;
+
+// ══════════════════ NAVIGATION ══════════════════
+function goTo(screenId, navId){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  const sc=document.getElementById(screenId); if(sc) sc.classList.add('on');
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  if(navId){ const ni=document.getElementById(navId); if(ni) ni.classList.add('on'); }
+}
+
+// ══════════════════ STATS ══════════════════
+function updateStats(){
+  const d=getDossiers().length, n=getNotes().length;
+  document.getElementById('stat-dos').textContent=d||'—';
+  document.getElementById('stat-notes').textContent=n||'—';
+}
+
+// ══════════════════ FORM ══════════════════
+const FID=['f_surname','f_name','f_patronymic','f_alias','f_dob','f_gender','f_citizenship','f_marital','f_children','f_phone1','f_phone2','f_email1','f_email2','f_telegram','f_whatsapp','f_viber','f_country','f_city','f_region','f_address','f_reg_address','f_coords','f_passport','f_passport_date','f_passport_issued','f_inn','f_snils','f_int_passport','f_driving','f_height','f_weight','f_eyes','f_hair','f_build','f_marks','f_vk','f_instagram','f_facebook','f_tiktok','f_twitter','f_linkedin','f_ok','f_employer','f_position','f_industry','f_org_inn','f_education','f_university','f_car1_model','f_car1_plate','f_car2_model','f_car2_plate','f_relatives','f_partners','f_friends','f_bank1','f_card1','f_bank2','f_card2','f_notes','f_sources','f_reliability','f_status'];
+function gfd(){const d={};FID.forEach(id=>{const el=document.getElementById(id);if(el)d[id]=el.value.trim();});return d;}
+function fillForm(d){FID.forEach(id=>{const el=document.getElementById(id);if(el&&d&&d[id]!==undefined)el.value=d[id];});}
+function clearForm(){FID.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});}
+function toggleCat(h){const b=h.nextElementSibling;h.classList.toggle('open');}
+
+function openForm(id=null, forceNew=false){
+  if(forceNew){ clearDraft();currentEditingId=null;clearForm();photoData=null;updatePhotoUI();document.getElementById('form-title').textContent='Новое досье'; }
+  else if(id){ clearDraft();currentEditingId=id;const d=loadById(id);if(d){fillForm(d.fields||{});photoData=d.photo||null;updatePhotoUI();}document.getElementById('form-title').textContent=(loadById(id)?.name||'').slice(0,20)||'Редактирование'; }
+  else { const dr=loadDraft();if(dr){currentEditingId=localStorage.getItem(DRAFT_ID)||null;fillForm(dr.fields||dr);photoData=dr.photo||null;updatePhotoUI();}else{clearForm();photoData=null;updatePhotoUI();}document.getElementById('form-title').textContent=currentEditingId?'Черновик':'Новое досье'; }
+  updateDraftLbl();
+  goTo('form-screen','');
+}
+
+function closeForm(){ saveDraft(); updateDraftLbl(); goTo('dossier-screen','nav-dos'); }
+
+// ══════════════════ PHOTO ══════════════════
+function handlePhoto(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=ev=>{photoData=ev.target.result;updatePhotoUI();saveDraft();};
+  r.readAsDataURL(f);e.target.value='';
+}
+function removePhoto(){photoData=null;updatePhotoUI();saveDraft();}
+function updatePhotoUI(){
+  const t=document.getElementById('photo-thumb'),d=document.getElementById('photo-del');
+  if(photoData){t.innerHTML=`<img src="${photoData}" alt="">`;d.style.display='block';}
+  else{t.innerHTML='📷';d.style.display='none';}
+}
+
+// ══════════════════ DRAFT ══════════════════
+function saveDraft(){
+  const f=gfd();const has=Object.values(f).some(v=>v&&v.trim&&v.trim());
+  if(has||photoData){localStorage.setItem(DRAFT_KEY,JSON.stringify({fields:f,photo:photoData}));localStorage.setItem(DRAFT_ID,currentEditingId||'');}
+}
+function loadDraft(){try{const r=localStorage.getItem(DRAFT_KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
+function clearDraft(){localStorage.removeItem(DRAFT_KEY);localStorage.removeItem(DRAFT_ID);}
+function updateDraftLbl(){
+  const has=!!loadDraft();
+  const el=document.getElementById('form-draft-lbl');if(el)el.style.display=has?'inline-block':'none';
+}
+
+// ══════════════════ GENERATE ══════════════════
+function generate(){
+  const d=gfd();
+  const fn=[d.f_surname,d.f_name,d.f_patronymic].filter(Boolean).join(' ')||'— Не указано —';
+  const dob=d.f_dob?fmtDate(d.f_dob):'';
+  const age=d.f_dob?calcAge(d.f_dob):'';
+  const meta=[dob,age?age+' лет':'',d.f_gender,d.f_citizenship].filter(Boolean);
+  const id='GT-'+String(Math.floor(Math.random()*900000)+100000);
+
+  // Quick chips
+  const qs=[];
+  const n=[d.f_surname,d.f_name].filter(Boolean).join(' ');
+  if(n) qs.push({l:'Яндекс',u:`https://yandex.ru/search/?text=${encodeURIComponent(n)}`});
+  if(d.f_phone1) qs.push({l:'GetContact',u:`https://getcontact.com/search?query=${encodeURIComponent(d.f_phone1)}`});
+  if(d.f_email1) qs.push({l:'HIBP',u:`https://haveibeenpwned.com/account/${encodeURIComponent(d.f_email1)}`});
+  if(d.f_vk) qs.push({l:'ВКонтакте',u:d.f_vk.startsWith('http')?d.f_vk:'https://'+d.f_vk});
+  if(d.f_instagram) qs.push({l:'Instagram',u:`https://instagram.com/${d.f_instagram.replace('@','')}`});
+  if(d.f_inn) qs.push({l:'ФНС',u:`https://egrul.nalog.ru/?query=${encodeURIComponent(d.f_inn)}`});
+  if(d.f_telegram) qs.push({l:'Telegram',u:`https://t.me/${d.f_telegram.replace('@','')}`});
+
+  // Barcode
+  let bc='<svg width="50" height="14" xmlns="http://www.w3.org/2000/svg">';
+  let x=0;for(let i=0;i<18;i++){const w=Math.random()>.5?2.5:1.2,h=Math.random()*10+4;bc+=`<rect x="${x}" y="${14-h}" width="${w}" height="${h}" fill="#2a3045"/>`;x+=w+1.2;}
+  bc+='</svg>';
+
+  // Sections
+  const secs=[
+    {t:'Идентификация',f:[['Псевдоним',d.f_alias],['Сем. положение',d.f_marital],['Дети',d.f_children]]},
+    {t:'Контакты',f:[['Телефон',d.f_phone1],['Тел.2',d.f_phone2],['E-mail',d.f_email1],['Telegram',d.f_telegram],['WhatsApp',d.f_whatsapp]]},
+    {t:'Местонахождение',f:[['Страна',d.f_country],['Город',d.f_city],['Адрес',d.f_address,'s'],['Прописка',d.f_reg_address,'s']]},
+    {t:'Документы',f:[['Паспорт',d.f_passport],['ИНН',d.f_inn],['СНИЛС',d.f_snils],['Загранпаспорт',d.f_int_passport]]},
+    {t:'Внешность',f:[['Рост',d.f_height?d.f_height+' см':''],['Вес',d.f_weight?d.f_weight+' кг':''],['Глаза',d.f_eyes],['Волосы',d.f_hair]]},
+    {t:'Соцсети',f:[['ВКонтакте',d.f_vk],['Instagram',d.f_instagram],['TikTok',d.f_tiktok],['LinkedIn',d.f_linkedin]]},
+    {t:'Профессия',f:[['Место работы',d.f_employer],['Должность',d.f_position]]},
+    {t:'Транспорт',f:[['Авто',d.f_car1_model],['Номер',d.f_car1_plate]]},
+    {t:'Данные',f:[['Заметки',d.f_notes,'s'],['Достоверность',d.f_reliability],['Статус',d.f_status]]}
+  ];
+  let sh='';
+  secs.forEach((s,i)=>{
+    const fl=s.f.filter(f=>f[1]);if(!fl.length)return;
+    sh+=`<div class="dsec" style="animation-delay:${i*40}ms">`;
+    sh+=`<div class="dsec-t">${s.t}</div><div class="dgrid">`;
+    fl.forEach(([k,v,sp])=>{sh+=`<div class="df"${sp?' style="grid-column:1/-1"':''}><span class="df-k">${k}</span><span class="df-v">${esc(v)}</span></div>`;});
+    sh+=`</div></div>`;
+  });
+
+  const photo=photoData?`<div class="dphoto"><img src="${photoData}" alt=""></div>`:'<div class="dphoto empty"></div>';
+  const chips=qs.length?`<div class="quick-chips">${qs.map(q=>`<button class="qc" onclick="window.open('${esc(q.u)}','_blank')">${esc(q.l)}</button>`).join('')}</div>`:'';
+  const now=new Date().toLocaleDateString('ru-RU',{day:'2-digit',month:'long',year:'numeric'});
+
+  const html=`
+    ${chips}
+    <div class="a4w"><div class="a4">
+      <div class="dh">
+        <div class="dlogo">GhostTrace<span>Intelligence Platform</span></div>
+        <div class="dmeta"><div class="did">${id}</div><div class="ddate">${now}</div></div>
+      </div>
+      <div class="dstamp">${photo}<div><div class="dname">${esc(fn)}</div><div class="dmeta2">${esc(meta.join(' · '))||'—'}</div></div></div>
+      <div class="dbody">${sh}</div>
+      <div class="dfooter"><span class="dfooter-t">GHOSTTRACE · INTELLIGENCE RECORD</span>${bc}</div>
+    </div></div>
+    <div class="action-bar">
+      <div class="arow">
+        <button class="ab acc" onclick="dlJpeg()">↓ JPEG</button>
+        <button class="ab acc" onclick="dlDocx()">↓ DOCX</button>
+      </div>
+      <div class="arow">
+        <button class="ab blu" onclick="startAnalysis()">◈ Анализ</button>
+        <button class="ab" onclick="saveDossier()">💾 Сохранить</button>
+      </div>
+    </div>`;
+
+  const body=document.getElementById('dossier-preview-body');
+  body.innerHTML=html;
+  document.getElementById('dossier-screen-title').textContent=fn.slice(0,22);
+  saveDraft();updateDraftLbl();
+  goTo('dossier-screen','nav-dos');
+}
+
+// ══════════════════ STORAGE ══════════════════
+function getDossiers(){try{return JSON.parse(localStorage.getItem('gt_dossiers')||'[]');}catch(e){return[];}}
+function saveDossiers(a){localStorage.setItem('gt_dossiers',JSON.stringify(a));}
+function loadById(id){return getDossiers().find(d=>d.id===id)||null;}
+function saveDossier(){
+  const fields=gfd();const fn=[fields.f_surname,fields.f_name,fields.f_patronymic].filter(Boolean).join(' ');
+  const name=fn||'Досье без имени';const now=new Date().toISOString();const arr=getDossiers();
+  if(currentEditingId){const i=arr.findIndex(d=>d.id===currentEditingId);if(i>-1){arr[i]={...arr[i],fields,photo:photoData,name,updated:now};saveDossiers(arr);showToast('Досье обновлено');clearDraft();updateDraftLbl();updateStats();return;}}
+  const id='gt_'+Date.now();arr.unshift({id,name,fields,photo:photoData,created:now,updated:now});
+  saveDossiers(arr);currentEditingId=id;showToast('Досье сохранено');clearDraft();updateDraftLbl();updateStats();
+}
+
+// ══════════════════ CABINET ══════════════════
+const SMAP={'Активен':'active','Пассивен':'passive','Разрабатывается':'in-progress','Закрыт':'closed'};
+function renderCab(){
+  const q=(document.getElementById('cab-search')?.value||'').toLowerCase();
+  const arr=getDossiers().filter(d=>!q||d.name.toLowerCase().includes(q));
+  const wrap=document.getElementById('cab-list');
+  if(!arr.length){wrap.innerHTML='<div class="empty"><div class="eico">🗂</div><p>Нет досье</p></div>';return;}
+  wrap.innerHTML=arr.map(d=>{
+    const sc=SMAP[d.fields?.f_status||'']||'';
+    const ph=d.photo?`<img src="${d.photo}" alt="">`:'👤';
+    return `<div class="dcard" onclick="openDossierDetail('${d.id}')">
+      <div class="dcard-photo">${ph}</div>
+      <div class="dcard-info">
+        <div class="dcard-name">${esc(d.name)}</div>
+        <div class="dcard-date">${fmtShort(d.updated||d.created)}</div>
+        ${sc?`<span class="stag ${sc}">${esc(d.fields?.f_status||'')}</span>`:''}
+      </div>
+      <span style="color:var(--text-muted);font-size:18px;">›</span>
+    </div>`;
+  }).join('');
+}
+
+function openDossierDetail(id){
+  const d=loadById(id);if(!d)return;
+  currentEditingId=id;fillForm(d.fields||{});photoData=d.photo||null;updatePhotoUI();
+  // Load into dossier preview
+  const fields=d.fields||{};
+  const fn=[fields.f_surname,fields.f_name,fields.f_patronymic].filter(Boolean).join(' ')||d.name;
+  const meta=[fields.f_dob?fmtDate(fields.f_dob):'',fields.f_gender,fields.f_citizenship].filter(Boolean);
+  const secs=[
+    {t:'Контакты',f:[['Телефон',fields.f_phone1],['E-mail',fields.f_email1],['Telegram',fields.f_telegram]]},
+    {t:'Адрес',f:[['Город',fields.f_city],['Адрес',fields.f_address,'s']]},
+    {t:'Работа',f:[['Компания',fields.f_employer],['Должность',fields.f_position]]},
+    {t:'Данные',f:[['Статус',fields.f_status],['Заметки',fields.f_notes,'s']]}
+  ];
+  let sh='';secs.forEach(s=>{const fl=s.f.filter(f=>f[1]);if(!fl.length)return;sh+=`<div class="dsec"><div class="dsec-t">${s.t}</div><div class="dgrid">`;fl.forEach(([k,v,sp])=>{sh+=`<div class="df"${sp?' style="grid-column:1/-1"':''}><span class="df-k">${k}</span><span class="df-v">${esc(v)}</span></div>`;});sh+=`</div></div>`;});
+  const ph=d.photo?`<div class="dphoto"><img src="${d.photo}" alt=""></div>`:'<div class="dphoto empty"></div>';
+  let bc='<svg width="50" height="14" xmlns="http://www.w3.org/2000/svg">';let x=0;for(let i=0;i<18;i++){const w=Math.random()>.5?2.5:1.2,h=Math.random()*10+4;bc+=`<rect x="${x}" y="${14-h}" width="${w}" height="${h}" fill="#2a3045"/>`;x+=w+1.2;}bc+='</svg>';
+  const html=`
+    <div style="padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;gap:8px;">
+      <button class="ab" style="flex:1;" onclick="openForm('${id}')">✎ Редактировать</button>
+      <button class="ab blu" onclick="generate()">🔄 Открыть</button>
+      <button class="ab" style="border-color:rgba(179,58,58,.4);color:var(--red);" onclick="confirmDel('${id}')">✕</button>
+    </div>
+    <div style="padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);">
+      <div style="font-size:16px;font-weight:600;color:var(--text-bright);margin-bottom:3px;">${esc(fn)}</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);">Создано: ${fmtShort(d.created)} · Изм: ${fmtShort(d.updated||d.created)}</div>
+    </div>
+    <div class="a4w"><div class="a4">
+      <div class="dh"><div class="dlogo">GhostTrace<span>Intelligence Platform</span></div><div class="dmeta"><div class="did">GT-${String(Math.abs(hc(d.id))).slice(0,6)}</div></div></div>
+      <div class="dstamp">${ph}<div><div class="dname">${esc(fn)}</div><div class="dmeta2">${esc(meta.join(' · '))||'—'}</div></div></div>
+      <div class="dbody">${sh}</div>
+      <div class="dfooter"><span class="dfooter-t">GHOSTTRACE · RECORD</span>${bc}</div>
+    </div></div>`;
+  document.getElementById('dossier-preview-body').innerHTML=html;
+  document.getElementById('dossier-screen-title').textContent=fn.slice(0,22);
+  goTo('dossier-screen','nav-dos');
+}
+
+function confirmDel(id){
+  showModal('Удалить досье','Это действие необратимо.',()=>{
+    saveDossiers(getDossiers().filter(d=>d.id!==id));
+    renderCab();updateStats();goTo('cabinet-screen','nav-cab');
+    showToast('Удалено','err');
+  });
+}
+
+// ══════════════════ JOURNAL ══════════════════
+function getNotes(){try{return JSON.parse(localStorage.getItem('gt_notes')||'[]');}catch(e){return[];}}
+function saveNotes(a){localStorage.setItem('gt_notes',JSON.stringify(a));}
+const TL={observation:'Наблюдение',lead:'Зацепка',fact:'Факт',note:'Заметка'};
+
+function renderJournal(){
+  const arr=getNotes();const wrap=document.getElementById('journal-list');
+  if(!arr.length){wrap.innerHTML='<div class="empty"><div class="eico">📓</div><p>Нет заметок</p></div>';return;}
+  wrap.innerHTML=arr.map(n=>`
+    <div class="ncard" onclick="openNote('${n.id}')">
+      <div class="ncard-hdr">
+        <div class="ncard-title">${esc(n.title||'Без названия')}</div>
+        <span class="ntag ${n.tag||'note'}">${TL[n.tag||'note']}</span>
+      </div>
+      <div class="ncard-date">${fmtShort(n.updated||n.created)}</div>
+      <div class="ncard-prev">${esc((n.body||'').slice(0,60))}</div>
+    </div>`).join('');
+}
+
+function createNote(){
+  currentNoteId='note_'+Date.now();const now=new Date().toISOString();
+  const arr=getNotes();arr.unshift({id:currentNoteId,title:'',body:'',tag:'note',created:now,updated:now});
+  saveNotes(arr);renderJournal();openNote(currentNoteId);
+}
+function openNote(id){
+  currentNoteId=id;const n=getNotes().find(x=>x.id===id);if(!n)return;
+  document.getElementById('note-tag').value=n.tag||'note';
+  document.getElementById('note-title-input').value=n.title||'';
+  document.getElementById('note-body-input').value=n.body||'';
+  goTo('note-editor-screen','nav-jour');
+}
+function saveNote(){
+  const arr=getNotes();const i=arr.findIndex(x=>x.id===currentNoteId);if(i<0)return;
+  arr[i].title=document.getElementById('note-title-input')?.value.trim()||'';
+  arr[i].body=document.getElementById('note-body-input')?.value||'';
+  arr[i].tag=document.getElementById('note-tag')?.value||'note';
+  arr[i].updated=new Date().toISOString();
+  saveNotes(arr);showToast('Сохранено');updateStats();
+}
+function deleteCurrentNote(){
+  showModal('Удалить заметку','Заметка будет удалена.',()=>{
+    saveNotes(getNotes().filter(n=>n.id!==currentNoteId));
+    renderJournal();goTo('journal-screen','nav-jour');showToast('Удалено','err');updateStats();
+  });
+}
+
+// ══════════════════ TOOLS ══════════════════
+const TOOLS=[
+  {cat:'👤 Поиск по личности',items:[
+    {n:'Pipl',u:'https://pipl.com',b:'Платный',d:'Глубокий поиск по e-mail, телефону, имени.',e:'E-mail → связанные аккаунты, адреса'},
+    {n:'FastPeopleSearch',u:'https://fastpeoplesearch.com',b:'Бесплатный',d:'Бесплатный поиск в США.',e:'Имя + город → адреса, родственники'},
+    {n:'FullContact',u:'https://fullcontact.com',b:'Freemium',d:'E-mail → профили соцсетей.',e:'E-mail → аватар, LinkedIn'},
+  ]},
+  {cat:'📞 Телефоны',items:[
+    {n:'GetContact',u:'https://getcontact.com',b:'Бесплатный',d:'Как номер записан в чужих контактах.',e:'Номер → реальное имя из книги контактов'},
+    {n:'Truecaller',u:'https://truecaller.com',b:'Freemium',d:'Мировая база номеров.',e:'Анонимный номер → имя владельца'},
+    {n:'NumVerify',u:'https://numverify.com',b:'Freemium',d:'Оператор, страна, регион номера.',e:'+79... → МТС, Московский регион'},
+  ]},
+  {cat:'🌐 Соцсети и никнеймы',items:[
+    {n:'WhatsMyName',u:'https://whatsmyname.app',b:'Бесплатный',d:'Ник → профили на сотнях сайтов.',e:'username → все найденные аккаунты'},
+    {n:'Sherlock',u:'https://github.com/sherlock-project/sherlock',b:'Бесплатный',d:'CLI: ник на 400+ платформах.',e:'sherlock username → список аккаунтов'},
+    {n:'Social Analyzer',u:'https://github.com/qeeqbox/social-analyzer',b:'Бесплатный',d:'Поиск по имени/нику на 1000+ сайтах.',e:'ФИО → профили с аватаром'},
+  ]},
+  {cat:'📷 Лица и изображения',items:[
+    {n:'PimEyes',u:'https://pimeyes.com',b:'Freemium',d:'Реверс-поиск лиц в интернете.',e:'Фото → все появления лица'},
+    {n:'Yandex Images',u:'https://yandex.ru/images',b:'Бесплатный',d:'Лучший поиск по фото из рунета.',e:'Фото → страницы ВК, ОК'},
+    {n:'FaceCheck',u:'https://facecheck.id',b:'Freemium',d:'Лицо в соцсетях и утечках.',e:'Аватар → реальные аккаунты'},
+  ]},
+  {cat:'📍 Геолокация',items:[
+    {n:'Google Maps',u:'https://maps.google.com',b:'Бесплатный',d:'Спутник, Street View.',e:'Адрес → внешний вид здания'},
+    {n:'Yandex Maps',u:'https://yandex.ru/maps',b:'Бесплатный',d:'Панорамы улиц России и СНГ.',e:'Адрес → 360° панорама'},
+    {n:'SunCalc',u:'https://suncalc.org',b:'Бесплатный',d:'Время и дата съёмки по теням на фото.',e:'Тени → время суток'},
+  ]},
+  {cat:'🏢 Реестры и компании',items:[
+    {n:'ЕГРЮЛ / ФНС',u:'https://egrul.nalog.ru',b:'Бесплатный',d:'Реестр юрлиц России.',e:'ИНН → директор, адрес, дата'},
+    {n:'Rusprofile',u:'https://rusprofile.ru',b:'Бесплатный',d:'Данные о компаниях, связи.',e:'Компания → все связанные ИП/ООО'},
+    {n:'Картотека арб. дел',u:'https://kad.arbitr.ru',b:'Бесплатный',d:'Арбитражные дела по ИНН.',e:'ИНН → судебные дела, суммы'},
+  ]},
+  {cat:'💧 Утечки данных',items:[
+    {n:'HaveIBeenPwned',u:'https://haveibeenpwned.com',b:'Бесплатный',d:'E-mail в базах утечек.',e:'E-mail → список утечек'},
+    {n:'Dehashed',u:'https://dehashed.com',b:'Платный',d:'Поиск по e-mail, телефону, IP.',e:'E-mail → хэш пароля из утечки'},
+    {n:'LeakCheck',u:'https://leakcheck.io',b:'Freemium',d:'Российские базы утечек.',e:'Телефон → совпадения в рунете'},
+  ]},
+  {cat:'🖥 Домены и IP',items:[
+    {n:'Shodan',u:'https://shodan.io',b:'Freemium',d:'Устройства в интернете.',e:'IP → открытые порты, сервисы'},
+    {n:'ViewDNS',u:'https://viewdns.info',b:'Бесплатный',d:'Реверс IP, история DNS.',e:'IP → все домены на нём'},
+    {n:'VirusTotal',u:'https://virustotal.com',b:'Бесплатный',d:'Анализ URL и IP.',e:'Домен → оценка антивирусов'},
+  ]},
+  {cat:'🔎 Комплексные',items:[
+    {n:'Maltego',u:'https://maltego.com',b:'Freemium',d:'Граф связей между данными.',e:'E-mail → граф аккаунтов, IP'},
+    {n:'SpiderFoot',u:'https://spiderfoot.net',b:'Бесплатный',d:'OSINT-фреймворк.',e:'Домен → e-mail, утечки'},
+    {n:'OSINT Framework',u:'https://osintframework.com',b:'Бесплатный',d:'Карта всех OSINT-инструментов.',e:'Категория → инструменты'},
+  ]},
+];
+function renderTools(){
+  const wrap=document.getElementById('tools-list');if(!wrap||wrap.children.length)return;
+  TOOLS.forEach(cat=>{
+    const div=document.createElement('div');div.className='tcat';
+    const hdr=document.createElement('div');hdr.className='tcat-hdr';
+    hdr.innerHTML=`<span class="tcat-title">${esc(cat.cat)}</span><span class="tcat-arr">▾</span>`;
+    const items=document.createElement('div');items.className='tcat-items on';
+    hdr.onclick=()=>{items.classList.toggle('on');};
+    cat.items.forEach(t=>{
+      const a=document.createElement('a');a.className='titem';a.href=t.u;a.target='_blank';a.rel='noopener noreferrer';
+      a.innerHTML=`<div class="titem-body"><div class="titem-name">${esc(t.n)}</div><div class="titem-desc">${esc(t.d)}</div><div class="titem-ex">${esc(t.e)}</div></div><span class="tbadge${t.b==='Бесплатный'?' free':''}">${esc(t.b)}</span>`;
+      items.appendChild(a);
+    });
+    div.appendChild(hdr);div.appendChild(items);wrap.appendChild(div);
+  });
+}
+
+// ══════════════════ DOWNLOAD ══════════════════
+function dlJpeg(){
+  const a4=document.querySelector('.a4');if(!a4){showToast('Сформируйте досье','err');return;}
+  html2canvas(a4,{scale:3,backgroundColor:'#fff',useCORS:true,logging:false}).then(canvas=>{
+    const link=document.createElement('a');const n=getName()||'dossier';
+    link.download=`GhostTrace_${n}_${Date.now()}.jpg`;
+    link.href=canvas.toDataURL('image/jpeg',0.96);link.click();showToast('JPEG сохранён');
+  });
+}
+function dlDocx(){
+  const d=gfd();const {Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,AlignmentType,WidthType,BorderStyle,ShadingType}=docx;
+  const fn=[d.f_surname,d.f_name,d.f_patronymic].filter(Boolean).join(' ')||'—';
+  const dob=d.f_dob?fmtDate(d.f_dob):'—';const age=d.f_dob?calcAge(d.f_dob):'';
+  function mH(t){return new Paragraph({children:[new TextRun({text:t,bold:true,size:26,color:'1a1a2e'})],spacing:{before:200,after:60},border:{bottom:{style:BorderStyle.SINGLE,size:6,color:'c9a96e',space:1}}});}
+  function mR(k,v){if(!v)return null;return new TableRow({children:[new TableCell({width:{size:2600,type:WidthType.DXA},borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.SINGLE,size:2,color:'e8e5e0'},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE}},shading:{fill:'f5f5f0',type:ShadingType.CLEAR},margins:{top:50,bottom:50,left:100,right:100},children:[new Paragraph({children:[new TextRun({text:k,bold:true,size:16,color:'9a9590',allCaps:true})]})]}),new TableCell({width:{size:6760,type:WidthType.DXA},borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.SINGLE,size:2,color:'e8e5e0'},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE}},margins:{top:50,bottom:50,left:100,right:100},children:[new Paragraph({children:[new TextRun({text:v,size:21,color:'1a1a2e'})]})]})]});}
+  function mT(rows){const vr=rows.filter(Boolean);if(!vr.length)return null;return new Table({width:{size:9360,type:WidthType.DXA},columnWidths:[2600,6760],borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE},insideH:{style:BorderStyle.NONE},insideV:{style:BorderStyle.NONE}},rows:vr});}
+  function sp(){return new Paragraph({text:'',spacing:{before:80,after:0}});}
+  const ch=[new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:'GhostTrace',bold:true,size:48,color:'c9a96e'})]}),new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:'ПЕРСОНАЛЬНОЕ ДОСЬЕ',size:20,color:'5a6070',allCaps:true})]}),new Paragraph({text:'',spacing:{before:160,after:160}}),new Paragraph({children:[new TextRun({text:fn,bold:true,size:34,color:'0f1320'})]}),new Paragraph({children:[new TextRun({text:[dob,age?age+' лет':'',d.f_gender].filter(Boolean).join(' · '),size:20,color:'5a6070'})]}),new Paragraph({text:'',spacing:{before:140,after:0},border:{bottom:{style:BorderStyle.SINGLE,size:12,color:'c9a96e',space:1}}}),new Paragraph({text:'',spacing:{before:0,after:160}})];
+  const sects=[{t:'Личные данные',r:[mR('Псевдоним',d.f_alias),mR('Гражданство',d.f_citizenship),mR('Сем.полож.',d.f_marital),mR('Дети',d.f_children)]},{t:'Контакты',r:[mR('Телефон',d.f_phone1),mR('E-mail',d.f_email1),mR('Telegram',d.f_telegram),mR('WhatsApp',d.f_whatsapp)]},{t:'Местонахождение',r:[mR('Страна',d.f_country),mR('Город',d.f_city),mR('Адрес',d.f_address),mR('Прописка',d.f_reg_address)]},{t:'Документы',r:[mR('Паспорт',d.f_passport),mR('ИНН',d.f_inn),mR('СНИЛС',d.f_snils)]},{t:'Соцсети',r:[mR('ВКонтакте',d.f_vk),mR('Instagram',d.f_instagram),mR('TikTok',d.f_tiktok),mR('LinkedIn',d.f_linkedin)]},{t:'Профессия',r:[mR('Место работы',d.f_employer),mR('Должность',d.f_position)]},{t:'Транспорт',r:[mR('Авто',d.f_car1_model),mR('Номер',d.f_car1_plate)]},{t:'Данные',r:[mR('Заметки',d.f_notes),mR('Источники',d.f_sources),mR('Достоверность',d.f_reliability),mR('Статус',d.f_status)]}];
+  sects.forEach(s=>{const t=mT(s.r);if(!t)return;ch.push(mH(s.t));ch.push(sp());ch.push(t);ch.push(sp());});
+  ch.push(new Paragraph({text:'',spacing:{before:360,after:0},border:{top:{style:BorderStyle.SINGLE,size:6,color:'c9a96e',space:1}}}));
+  ch.push(new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:'GhostTrace Intelligence Platform',size:15,color:'9a9590'})]}));
+  const doc2=new Document({sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:900,right:900,bottom:900,left:900}}},children:ch}]});
+  Packer.toBlob(doc2).then(blob=>{const a=document.createElement('a');a.download=`GhostTrace_${getName()||'dossier'}_${Date.now()}.docx`;a.href=URL.createObjectURL(blob);a.click();showToast('DOCX сохранён');});
+}
+function getName(){const d=gfd();return[d.f_surname,d.f_name].filter(Boolean).join('_').replace(/\s+/g,'_');}
+
+// ══════════════════ EXPORT ══════════════════
+function exportAll(){
+  const data={version:'2.0',exported:new Date().toISOString(),dossiers:getDossiers(),notes:getNotes()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`GhostTrace_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();showToast('Экспортировано','inf');
+}
+
+// ══════════════════ ANALYSIS ══════════════════
+const OR='https://openrouter.ai/api/v1/chat/completions';
+const MODELS=['openrouter/free','deepseek/deepseek-chat:free','meta-llama/llama-3.3-70b-instruct:free','google/gemma-3-12b-it:free','mistralai/mistral-7b-instruct:free'];
+let analysisRes=null;
+
+function getKey(){return localStorage.getItem('gt_or_key')||'';}
+function saveApiKey(){
+  const v=document.getElementById('apikey-input')?.value.trim();
+  if(!v||v.length<20){showToast('Введите корректный ключ','err');return;}
+  localStorage.setItem('gt_or_key',v);showToast('Ключ сохранён','inf');goTo('analysis-screen','');startAnalysis();
+}
+
+async function startAnalysis(){
+  const key=getKey();
+  if(!key){
+    document.getElementById('apikey-input').value='';
+    goTo('apikey-screen','');return;
+  }
+  const d=gfd();const fn=[d.f_surname,d.f_name,d.f_patronymic].filter(Boolean).join(' ');
+  if(!fn&&!d.f_phone1&&!d.f_email1){showToast('Заполните ФИО или телефон','err');return;}
+
+  goTo('analysis-screen','');
+  const body=document.getElementById('analysis-body');
+  document.getElementById('analysis-footer').style.display='none';
+  analysisRes=null;
+
+  const steps=['Сбор данных','Поиск соцсетей','Анализ связей','Верификация','Отчёт'];
+  body.innerHTML=`<div class="analysis-steps">${steps.map((s,i)=>`<div class="as-row" id="as${i}"><div class="as-dot pending" id="asd${i}">⋯</div><div class="as-info"><div class="as-lbl">${s}</div><div class="as-det" id="asd-t${i}">Ожидание...</div></div></div>`).join('')}</div>`;
+
+  let cur=0;
+  setAS(0,'run','◉');
+  const timer=setInterval(()=>{if(cur<steps.length-1){setAS(cur,'done','✓');cur++;setAS(cur,'run','◉');}},2000);
+
+  const lines=[];
+  if(fn) lines.push(`ФИО: ${fn}`);
+  [['Дата рождения',d.f_dob?fmtDate(d.f_dob):''],['Пол',d.f_gender],['Гражданство',d.f_citizenship],['Телефон',d.f_phone1],['Тел.2',d.f_phone2],['E-mail',d.f_email1],['Telegram',d.f_telegram],['WhatsApp',d.f_whatsapp],['Город',d.f_city],['Страна',d.f_country],['Адрес',d.f_address],['Паспорт',d.f_passport],['ИНН',d.f_inn],['СНИЛС',d.f_snils],['ВКонтакте',d.f_vk],['Instagram',d.f_instagram],['TikTok',d.f_tiktok],['LinkedIn',d.f_linkedin],['Twitter',d.f_twitter],['Работа',d.f_employer],['Должность',d.f_position],['ИНН орг.',d.f_org_inn],['Авто',d.f_car1_model],['Номер',d.f_car1_plate],['Псевдоним',d.f_alias],['Заметки',d.f_notes]].forEach(([k,v])=>{if(v)lines.push(`${k}: ${v}`);});
+  const dossierText=lines.join('\n');
+
+  const prompt=`Ты — эксперт OSINT. Детальный анализ досье.
+
+ДОСЬЕ:
+${dossierText}
+
+ЗАДАЧИ:
+1. Верификация данных (форматы ИНН/СНИЛС/паспорт/телефон, логичность)
+2. Доп. соцсети по имени/нику/email — прямые ссылки на поиск (ВК, Insta, TikTok, LinkedIn, GitHub, YouTube и др.)
+3. Упоминания в открытых источниках (СМИ, ЕГРЮЛ, арбитраж, форумы) + ссылки + что это значит
+4. Цифровой след (оператор телефона, регион ИНН, история email-домена)
+5. Поведенческий анализ (социальный статус, приватность, аномалии, риски)
+6. Расхождения в данных
+7. План розыска (топ-5 конкретных шагов)
+
+JSON только (без markdown):
+{"mode":"llm","summary":"резюме","credibility_score":75,"verified":[{"key":"","value":"","confidence":"high","source":""}],"social_leads":[{"platform":"","platform_icon":"🔵","display_name":"","url":"","confidence":"medium","note":"","field_id":"f_vk"}],"mentions":[{"title":"","type":"article","body":"","analysis":"","search_url":"","source":""}],"digital_footprint":[{"key":"","value":"","note":""}],"behavioral":[{"category":"","observation":"","inference":"","severity":"info"}],"discrepancies":[{"field":"","existing":"","found":"","note":""}],"new_findings":[{"category":"","key":"","value":"","confidence":"medium","source":"","field_id":"f_notes"}],"next_steps":[{"step":"","tool":"","priority":"high"}],"risk_flags":[""]}
+type: article|social|registry|forum. severity: info|warn|alert. priority: high|medium|low. Только на русском.`;
+
+  let lastErr=null;
+  for(let i=0;i<MODELS.length;i++){
+    const model=MODELS[i];
+    if(i>0){const dt=document.getElementById(`asd-t0`);if(dt)dt.textContent=`Попытка ${i+1}: ${model.split('/').pop()}...`;await new Promise(r=>setTimeout(r,600));}
+    try{
+      const r=await callOR(key,prompt,model);
+      clearInterval(timer);steps.forEach((_,j)=>setAS(j,'done','✓'));renderAR(r);return;
+    }catch(err){lastErr=err;if(err.retry&&i<MODELS.length-1)continue;break;}
+  }
+  clearInterval(timer);
+  body.innerHTML=`<div style="padding:32px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;">
+    <div style="font-size:36px;opacity:.4">⚠</div>
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--red);">ОШИБКА</div>
+    <div style="font-size:12px;color:var(--text-dim);line-height:1.7;max-width:280px;">${esc(lastErr?.message||'Неизвестная ошибка')}</div>
+    <button class="ab acc" style="margin-top:8px;" onclick="startAnalysis()">↻ Повторить</button>
+    <button class="ab" onclick="goTo('apikey-screen','')">⚙ Изменить ключ</button>
+  </div>`;
+}
+
+function setAS(i,state,icon){const d=document.getElementById(`asd${i}`);if(!d)return;d.textContent=icon;d.className=`as-dot ${state}`;}
+
+async function callOR(key,prompt,model){
+  let resp;
+  try{resp=await fetch(OR,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`,'HTTP-Referer':'https://ghosttrace.local','X-Title':'GhostTrace'},body:JSON.stringify({model,messages:[{role:'user',content:prompt}],temperature:0.15,max_tokens:3000})});}
+  catch(e){const err=new Error('Нет соединения с OpenRouter.');err.retry=false;throw err;}
+  const raw=await resp.text();let data=null;try{data=JSON.parse(raw);}catch(_){}
+  if(!resp.ok){
+    const msg=data?.error?.message||raw?.slice(0,200)||'';
+    if(resp.status===401){const e=new Error('Неверный ключ. Должен начинаться с sk-or-v1-...');e.retry=false;throw e;}
+    if(resp.status===402){const e=new Error('Баланс OpenRouter исчерпан.');e.retry=false;throw e;}
+    if(resp.status===404||msg.includes('No endpoints')||msg.includes('not found')){const e=new Error(`Модель ${model} недоступна.`);e.retry=true;throw e;}
+    if(resp.status===429){const e=new Error(`Лимит на ${model}.`);e.retry=true;throw e;}
+    if(resp.status>=500){const e=new Error('Сервер OpenRouter недоступен.');e.retry=true;throw e;}
+    const e=new Error(`Ошибка (${resp.status}): ${msg.slice(0,100)}`);e.retry=false;throw e;
+  }
+  const text=data?.choices?.[0]?.message?.content||'';
+  if(!text){const e=new Error(`Пустой ответ от ${model}.`);e.retry=true;throw e;}
+  const cleaned=text.replace(/<think>[\s\S]*?<\/think>/gi,'').trim();
+  let jsonStr=null;
+  const fenced=cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if(fenced)jsonStr=fenced[1].trim();
+  else{const all=[...cleaned.matchAll(/\{[\s\S]*?\}/g)].sort((a,b)=>b[0].length-a[0].length);if(all.length)jsonStr=all[0][0];}
+  if(!jsonStr){const e=new Error(`Неожиданный формат от ${model}.`);e.retry=true;throw e;}
+  try{return JSON.parse(jsonStr);}catch(_){try{return JSON.parse(jsonStr.replace(/,(\s*[}\]])/g,'$1'));}catch(_2){const e=new Error(`JSON-ошибка от ${model}.`);e.retry=true;throw e;}}
+}
+
+function renderAR(r){
+  analysisRes=r;const body=document.getElementById('analysis-body');body.innerHTML='';
+  const sc=r.credibility_score>=70?'var(--green)':r.credibility_score>=40?'#e8a050':'var(--red)';
+  const sumDiv=document.createElement('div');sumDiv.className='sum-block';
+  sumDiv.innerHTML=`<div class="sum-row"><div class="score" style="border-color:${sc};color:${sc};background:${sc}1a">${r.credibility_score||'?'}</div><div class="sum-text">${esc(r.summary||'Анализ завершён.')}</div></div>${r.risk_flags?.length?`<div class="risk-flags">${r.risk_flags.map(f=>`<span class="rflag">⚠ ${esc(f)}</span>`).join('')}</div>`:''}`;
+  body.appendChild(sumDiv);
+
+  function addBlock(ico,title,cnt,inner){const b=document.createElement('div');b.className='rb';b.innerHTML=`<div class="rb-hdr"><span class="rb-ico">${ico}</span><span class="rb-title">${title}</span><span class="rb-cnt">${cnt}</span></div>${inner}`;body.appendChild(b);}
+
+  if(r.social_leads?.length){
+    addBlock('🔗','Доп. соцсети и аккаунты',r.social_leads.length,r.social_leads.map(s=>{const cc=s.confidence==='high'?'ch':s.confidence==='medium'?'cm':'cl';const cl=s.confidence==='high'?'Высокая':s.confidence==='medium'?'Средняя':'Низкая';return `<a class="sl-item" href="${esc(s.url||'#')}" target="_blank" rel="noopener"><div class="sl-plat">${s.platform_icon||'🌐'}</div><div class="sl-body"><div class="sl-name">${esc(s.platform||'')}${s.display_name?' · '+esc(s.display_name):''}</div>${s.url?`<div class="sl-url">${esc(s.url)}</div>`:''} ${s.note?`<div class="sl-note">${esc(s.note)}</div>`:''}</div><span class="cbadge ${cc}">${cl}</span></a>`;}).join(''));
+  }
+  if(r.mentions?.length){
+    const tmap={article:'Статья',social:'Соцсети',registry:'Реестр',forum:'Форум'};
+    addBlock('📰','Упоминания',r.mentions.length,r.mentions.map(m=>`<div class="mi"><div class="mi-hdr"><div class="mi-title">${esc(m.title||'')}</div><span class="mtag ${m.type||'forum'}">${tmap[m.type]||m.type||''}</span></div>${m.body?`<div class="mi-body">${esc(m.body)}</div>`:''} ${m.analysis?`<div class="mi-analysis">${esc(m.analysis)}</div>`:''} ${m.search_url?`<a href="${esc(m.search_url)}" target="_blank" rel="noopener" style="display:block;font-family:var(--mono);font-size:9px;color:var(--blue);margin-top:5px;">🔍 Открыть ↗</a>`:''}</div>`).join(''));
+  }
+  if(r.digital_footprint?.length){
+    addBlock('👣','Цифровой след',r.digital_footprint.length,`<div class="fp-grid">${r.digital_footprint.map(f=>`<div class="fp-cell"><div class="fp-k">${esc(f.key||'')}</div><div class="fp-v">${esc(f.value||'')}</div>${f.note?`<div class="fp-n">${esc(f.note)}</div>`:''}</div>`).join('')}</div>`);
+  }
+  if(r.behavioral?.length){
+    addBlock('🧠','Поведенческий анализ',r.behavioral.length,r.behavioral.map(b=>{const sc2=b.severity==='alert'?'sa':b.severity==='warn'?'sw':'si';const sl=b.severity==='alert'?'Тревога':b.severity==='warn'?'Внимание':'Справка';return `<div class="bi"><div class="bi-cat">${esc(b.category||'')}</div><div class="bi-obs">${esc(b.observation||'')}</div>${b.inference?`<div class="bi-inf">${esc(b.inference)}</div>`:''}<span class="sevtag ${sc2}">${sl}</span></div>`;}).join(''));
+  }
+  if(r.verified?.length){
+    addBlock('✅','Верификация',r.verified.length,r.verified.map(it=>{const cc=it.confidence==='high'?'ch':it.confidence==='medium'?'cm':'cl';const cl=it.confidence==='high'?'Высокая':it.confidence==='medium'?'Средняя':'Низкая';return `<div class="ri"><div class="ri-k">${esc(it.key||'')}</div><div class="ri-v">${esc(it.value||'')}</div>${it.source?`<div class="ri-s">↗ ${esc(it.source)}</div>`:''}<span class="cbadge ${cc}">${cl}</span></div>`;}).join(''));
+  }
+  if(r.new_findings?.length){
+    addBlock('🔎','Новые данные',r.new_findings.length,r.new_findings.map((it,i)=>{const cc=it.confidence==='high'?'ch':it.confidence==='medium'?'cm':'cl';const cl=it.confidence==='high'?'Высокая':it.confidence==='medium'?'Средняя':'Низкая';return `<div class="ri sel" onclick="toggleRI(this)" data-field="${esc(it.field_id||'f_notes')}" data-value="${esc(it.value||'')}"><div class="rchk" id="rchk${i}"></div><div style="flex:1"><div class="ri-k">[${esc(it.category||'')}] ${esc(it.key||'')}</div><div class="ri-v">${esc(it.value||'')}</div>${it.source?`<div class="ri-s">↗ ${esc(it.source)}</div>`:''}<span class="cbadge ${cc}">${cl}</span></div></div>`;}).join(''));
+  }
+  if(r.discrepancies?.length){
+    addBlock('⚠️','Расхождения',r.discrepancies.length,r.discrepancies.map(d=>`<div class="di"><div class="di-f">⚠ ${esc(d.field||'')}</div><div class="di-row"><span class="di-lbl">В досье:</span><span class="di-v di-ex">${esc(d.existing||'')}</span></div><div class="di-row"><span class="di-lbl">Найдено:</span><span class="di-v di-fo">${esc(d.found||'')}</span></div>${d.note?`<div class="di-note">${esc(d.note)}</div>`:''}</div>`).join(''));
+  }
+  if(r.next_steps?.length){
+    addBlock('🎯','План розыска',r.next_steps.length,r.next_steps.map((s,i)=>{const pc=s.priority==='high'?'prih':s.priority==='medium'?'prim':'pril';const pl=s.priority==='high'?'Высокий':s.priority==='medium'?'Средний':'Низкий';return `<div class="nsi"><div class="nsi-num">${i+1}</div><div><div class="nsi-text">${esc(s.step||'')}</div>${s.tool?`<div class="nsi-tool">🔧 ${esc(s.tool)}</div>`:''}<span class="pritag ${pc}">Приоритет: ${pl}</span></div></div>`;}).join(''));
+  }
+
+  updateAF();
+  document.getElementById('analysis-footer').style.display='flex';
+}
+
+function toggleRI(el){el.classList.toggle('selected');const c=el.querySelector('.rchk');if(c)c.textContent=el.classList.contains('selected')?'✓':'';updateAF();}
+function updateAF(){
+  const sel=document.querySelectorAll('#analysis-body .ri.selected').length;
+  const info=document.getElementById('analysis-footer-info');
+  const btn=document.getElementById('btn-apply');
+  if(info)info.textContent=sel?`Выбрано: ${sel} элемент${sel===1?'':'(ов)'}`:'Нажмите для выбора';
+  if(btn)btn.disabled=sel===0;
+}
+function applyFindings(){
+  document.querySelectorAll('#analysis-body .ri.selected').forEach(item=>{
+    const f=item.dataset.field,v=item.dataset.value;if(!f||!v)return;
+    const el=document.getElementById(f);
+    if(el){if(el.tagName==='TEXTAREA')el.value=el.value?el.value+'\n'+v:v;else if(!el.value)el.value=v;else{const n=document.getElementById('f_notes');if(n)n.value=n.value?n.value+'\n'+v:v;}}
+  });
+  saveDraft();showToast('Данные добавлены');goTo('dossier-screen','nav-dos');
+}
+
+// ══════════════════ MODAL / TOAST ══════════════════
+function showModal(title,text,onConfirm){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-text').textContent=text;
+  confirmCb=onConfirm;
+  document.getElementById('modal').classList.add('on');
+  document.getElementById('modal-ok').onclick=()=>{closeModal();if(confirmCb)confirmCb();};
+}
+function closeModal(){document.getElementById('modal').classList.remove('on');confirmCb=null;}
+
+let toastT=null;
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');t.className='on'+(type?' '+type:'');
+  document.getElementById('toast-msg').textContent=msg;
+  clearTimeout(toastT);toastT=setTimeout(()=>t.className='',2600);
+}
+
+// ══════════════════ UTILS ══════════════════
+function esc(s){if(!s)return '';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtDate(s){if(!s)return '';try{return new Date(s).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'});}catch(e){return s;}}
+function fmtShort(s){if(!s)return '';try{const d=new Date(s);return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});}catch(e){return s;}}
+function calcAge(dob){if(!dob)return '';const b=new Date(dob),n=new Date(),a=n.getFullYear()-b.getFullYear()-((n.getMonth()<b.getMonth()||n.getMonth()===b.getMonth()&&n.getDate()<b.getDate())?1:0);return isNaN(a)?'':a;}
+function hc(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h);}
+
+// ══════════════════ INIT ══════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('bnav').classList.add('on');
+  updateStats();
+  renderTools();
+  updateDraftLbl();
+});
+</script>
+</body>
+</html>
